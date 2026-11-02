@@ -4,3 +4,4 @@ samples/
 
 # Packaged builds
 *.zip
+dist/

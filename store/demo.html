@@ -1,0 +1,44 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8">
+<title>Do It — screenshot demo</title>
+<style>html, body, iframe { margin: 0; border: 0; width: 100%; height: 100%; display: block; }</style>
+</head>
+<body>
+<!-- Loads the app with sample data for store screenshots: demo.html?lang=fa&tip=1 -->
+<iframe id="app"></iframe>
+<script>
+const params = new URLSearchParams(location.search);
+const pad = n => String(n).padStart(2, '0');
+const day = offset => { const d = new Date(); d.setDate(d.getDate() + offset); return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`; };
+let n = 0;
+const t = (name, offset, time = '23:59', done = false, url) => ({ id: 'd' + n++, name, due: offset === null ? '' : day(offset), time, done, ...(url && { url, extId: 'demo:' + n }) });
+const fa = params.get('lang') === 'fa';
+const courses = fa ? [
+  { id: 'c1', name: 'سیستم‌های عامل', tasks: [t('تمرین ۳', 1, '23:59', false, '#'), t('تمرین ۲', -6, '23:59', true, '#'), t('پروژه‌ی فاز ۱', 12, '23:59', false, '#')] },
+  { id: 'c2', name: 'شبکه‌های کامپیوتری', tasks: [t('Post-Quantum Cryptography', 4, '23:55', false, '#'), t('تمرین اول', -2, '23:59', true, '#'), t('آزمونک ۲', 8, '10:00', false, '#')] },
+  { id: 'c3', name: 'یادگیری ماشین', tasks: [t('تمرین دو', 4, '23:59', false, '#'), t('مطالعه‌ی فصل ۴', 2, '', false)] },
+  { id: 'c4', name: 'ارائه مطالب علمی و فنی', tasks: [t('تمرین یک - سخنرانی آسانسوری', 0, '23:59', false, '#'), t('تمرین دو - رزومه', 11, '23:59', false, '#')] },
+] : [
+  { id: 'c1', name: 'Operating Systems', tasks: [t('Assignment 3', 1, '23:59', false, '#'), t('Assignment 2', -6, '23:59', true, '#'), t('Project phase 1', 12, '23:59', false, '#')] },
+  { id: 'c2', name: 'Computer Networks', tasks: [t('Post-Quantum Cryptography', 4, '23:55', false, '#'), t('Homework 1', -2, '23:59', true, '#'), t('Quiz 2', 8, '10:00', false, '#')] },
+  { id: 'c3', name: 'Machine Learning', tasks: [t('Homework 2', 4, '23:59', false, '#'), t('Read chapter 4', 2, '', false)] },
+  { id: 'c4', name: 'Technical Presentation', tasks: [t('Elevator pitch', 0, '23:59', false, '#'), t('Résumé', 11, '23:59', false, '#')] },
+];
+localStorage.setItem('doit-data', JSON.stringify(courses));
+localStorage.setItem('doit-lang', fa ? 'fa' : 'en');
+
+const frame = document.getElementById('app');
+frame.onload = () => {
+  const w = frame.contentWindow;
+  if (params.get('tip')) {
+    // Show the hover list for the first day with two or more tasks
+    const cell = [...w.document.querySelectorAll('.day.has')].find(c => c.querySelectorAll('.dots span').length >= 2);
+    cell?.dispatchEvent(new w.PointerEvent('pointerenter', { pointerType: 'mouse' }));
+  }
+};
+frame.src = '../index.html';
+</script>
+</body>
+</html>
