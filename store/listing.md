@@ -75,4 +75,4 @@ Copy these into the Developer Dashboard. Fill in the English listing as the defa
 - Google counts data as "collected" only when it leaves the user's device. This extension sends nothing anywhere, so **none of the categories need to be ticked**. If the review asks about it, explain that assignment data read from CW/Quera ("Website content") is stored only locally.
 - Tick all three certifications: data is not sold, not used for unrelated purposes, and not used for creditworthiness or lending.
 
-**Privacy policy URL:** host `store/privacy-policy.md` publicly, for example as a GitHub Pages page or a public GitHub file, and paste its link.
+**Privacy policy URL:** https://mazm28.github.io/do-it-sharif/store/privacy-policy.html (GitHub Pages, built from `store/privacy-policy.md`)
