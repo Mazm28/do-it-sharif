@@ -1,0 +1,6 @@
+# Local tool settings and saved sample pages (may contain personal data)
+.claude/
+samples/
+
+# Packaged builds
+*.zip
