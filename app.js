@@ -99,12 +99,13 @@ function save() {
 }
 const uid = () => Date.now().toString(36) + Math.random().toString(36).slice(2, 6);
 
-function dueInfo({ due: date, time }) {
+function dueInfo({ due: date, time, done }) {
   if (!date) return { text: T.noDate, cls: '' };
   const at = time ? ` · ${num(time)}` : '';
   const days = Math.round((new Date(date + 'T00:00') - new Date(todayIso() + 'T00:00')) / 86400000);
   const [jy] = jFromIso(date), [ty] = jFromIso(todayIso());
   const label = fmtJ(date, jy !== ty);
+  if (done) return { text: label + at, cls: '' }; // finished work is never "overdue"
   if (days < 0) return { text: T.overdue(label), cls: 'overdue' };
   if (days === 0) return { text: T.today + at, cls: 'soon' };
   if (days === 1) return { text: T.tomorrow + at, cls: 'soon' };
