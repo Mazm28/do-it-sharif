@@ -28,7 +28,7 @@ All of the data above is stored **only on your own computer**, in your browser's
 
 ## Contact
 
-Questions about this policy: [YOUR CONTACT EMAIL]
+Questions about this policy: ali.meschi24@sharif.edu
 
 ---
 
@@ -62,4 +62,4 @@ Do It یک فهرست کارها برای درس‌های دانشگاه است.
 
 ## تماس
 
-سؤال درباره‌ی این سیاست: [YOUR CONTACT EMAIL]
+سؤال درباره‌ی این سیاست: ali.meschi24@sharif.edu
