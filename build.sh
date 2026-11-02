@@ -4,11 +4,11 @@
 set -euo pipefail
 cd "$(dirname "$0")"
 
-FILES=(manifest.json index.html app.js background.js sync.js icons)
+FILES=(manifest.json index.html app.js background.js sync.js update.js icons)
 VERSION=$(sed -n 's/.*"version": *"\([^"]*\)".*/\1/p' manifest.json)
 OUT="dist/do-it-$VERSION.zip"
 
-for f in app.js background.js sync.js; do node --check "$f"; done
+for f in app.js background.js sync.js update.js; do node --check "$f"; done
 
 mkdir -p dist
 rm -f "$OUT"

@@ -1,4 +1,4 @@
-importScripts('sync.js');
+importScripts('sync.js', 'update.js');
 
 // Clicking the toolbar icon opens the app (or focuses it if already open)
 chrome.action.onClicked.addListener(async () => {
@@ -11,25 +11,35 @@ chrome.action.onClicked.addListener(async () => {
     chrome.tabs.create({ url });
   }
   syncAll();
+  checkForUpdate();
 });
 
 // Check for new assignments every hour, and whenever the browser starts
 chrome.runtime.onInstalled.addListener(() => {
   chrome.alarms.create('sync', { periodInMinutes: 60 });
+  chrome.alarms.create('update', { periodInMinutes: 12 * 60 });
   syncAll();
+  checkForUpdate();
 });
-chrome.runtime.onStartup.addListener(syncAll);
-chrome.alarms.onAlarm.addListener(a => { if (a.name === 'sync') syncAll(); });
+chrome.runtime.onStartup.addListener(() => { syncAll(); checkForUpdate(); });
+chrome.alarms.onAlarm.addListener(a => {
+  if (a.name === 'sync') syncAll();
+  if (a.name === 'update') checkForUpdate();
+});
 
 // The app page asks for a sync with the "Sync now" button
 chrome.runtime.onMessage.addListener((msg, _sender, reply) => {
   if (msg === 'sync') { syncAll().then(reply); return true; }
 });
 
-// Clicking an expired-login notification opens that site's login page
-chrome.notifications.onClicked.addListener(id => {
+// Clicking a notification opens the login page (expired login) or the release page (update)
+chrome.notifications.onClicked.addListener(async id => {
   const source = id.startsWith('login:') && id.slice(6);
   if (LOGIN_URLS[source]) chrome.tabs.create({ url: LOGIN_URLS[source] });
+  if (id === 'update') {
+    const info = (await chrome.storage.local.get(UPDATE_KEY))[UPDATE_KEY];
+    if (info?.url) chrome.tabs.create({ url: info.url });
+  }
   chrome.notifications.clear(id);
 });
 

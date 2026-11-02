@@ -47,7 +47,7 @@ const STR = {
     wdShort: ['Sa', 'Su', 'Mo', 'Tu', 'We', 'Th', 'Fr'],
     syncNow: 'Sync now', syncing: 'Syncing…', never: 'not synced yet',
     syncedAgo: m => m < 1 ? 'synced just now' : m < 60 ? `synced ${m} min ago` : `synced ${Math.floor(m / 60)} h ago`,
-    added: n => ` · ${n} new`, login: 'log in to sync', limited: 'from calendar link ·', loginFull: 'log in for full sync', syncFailed: 'sync failed',
+    added: n => ` · ${n} new`, newVersion: v => `🎉 Version ${v} is out`, getIt: 'Download', login: 'log in to sync', limited: 'from calendar link ·', loginFull: 'log in for full sync', syncFailed: 'sync failed',
   },
   fa: {
     title: 'Do It', switchTo: 'English', addCoursePh: 'یک درس یا موضوع اضافه کن…', addCourse: 'افزودن درس',
@@ -62,7 +62,7 @@ const STR = {
     wdShort: ['ش', 'ی', 'د', 'س', 'چ', 'پ', 'ج'],
     syncNow: 'همگام‌سازی', syncing: 'در حال همگام‌سازی…', never: 'هنوز همگام نشده',
     syncedAgo: m => m < 1 ? 'همین الان همگام شد' : m < 60 ? `${m} دقیقه پیش همگام شد` : `${Math.floor(m / 60)} ساعت پیش همگام شد`,
-    added: n => ` · ${n} مورد جدید`, login: 'برای همگام‌سازی وارد شو', limited: 'از لینک تقویم ·', loginFull: 'برای همگام‌سازی کامل وارد شو', syncFailed: 'همگام‌سازی نشد',
+    added: n => ` · ${n} مورد جدید`, newVersion: v => `🎉 نسخه‌ی ${v} آمده`, getIt: 'دانلود', login: 'برای همگام‌سازی وارد شو', limited: 'از لینک تقویم ·', loginFull: 'برای همگام‌سازی کامل وارد شو', syncFailed: 'همگام‌سازی نشد',
   },
 };
 const LANG_KEY = 'doit-lang';
@@ -83,6 +83,7 @@ const fmtJ = (iso, withYear) => {
 const KEY = 'doit-data';
 const DISMISSED_KEY = 'doit-dismissed';
 const STATUS_KEY = 'doit-sync';
+const UPDATE_KEY = 'doit-update';
 const COLORS = ['#6c5ce7', '#00a884', '#f0643c', '#2f80ed', '#e84393', '#d98a00', '#0fb5ae', '#8e44ad'];
 // Inside the extension, data lives in chrome.storage so the background sync can add tasks
 const store = globalThis.chrome?.storage?.local;
@@ -355,6 +356,7 @@ document.getElementById('lang').onclick = () => {
   closePicker();
   render();
   renderSync();
+  renderUpdate();
 };
 
 // Imported tasks the user deleted stay deleted on the next sync
@@ -387,6 +389,17 @@ function renderSync() {
   bar.replaceChildren(...chips,
     el('button', { type: 'button', textContent: syncing ? T.syncing : T.syncNow, disabled: syncing, onclick: syncNow }));
 }
+// ---- New-version banner (extension only; set by the background update check) ----
+let updateInfo = null;
+function renderUpdate() {
+  const link = document.getElementById('update');
+  link.hidden = !updateInfo;
+  if (!updateInfo) return;
+  link.className = 'update';
+  link.href = updateInfo.url;
+  link.replaceChildren(el('span', { textContent: T.newVersion(num(updateInfo.version)) }), el('span', { textContent: T.getIt }));
+}
+
 async function syncNow() {
   syncing = true; renderSync();
   try { syncStatus = await chrome.runtime.sendMessage('sync') || syncStatus; } catch {}
@@ -394,6 +407,7 @@ async function syncNow() {
 }
 if (store) {
   store.get(STATUS_KEY).then(d => { syncStatus = d[STATUS_KEY] || {}; renderSync(); });
+  store.get(UPDATE_KEY).then(d => { updateInfo = d[UPDATE_KEY] || null; renderUpdate(); });
   setInterval(renderSync, 60000);
 }
 
@@ -401,6 +415,7 @@ if (store) {
 store && chrome.storage.onChanged.addListener((changes, area) => {
   const next = changes[KEY]?.newValue;
   if (area === 'local' && changes[STATUS_KEY]) { syncStatus = changes[STATUS_KEY].newValue || {}; renderSync(); }
+  if (area === 'local' && changes[UPDATE_KEY]) { updateInfo = changes[UPDATE_KEY].newValue || null; renderUpdate(); }
   if (area !== 'local' || !next || JSON.stringify(next) === JSON.stringify(courses)) return;
   courses = next;
   render();
