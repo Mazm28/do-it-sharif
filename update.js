@@ -14,6 +14,7 @@ function isNewer(a, b) {
 const UPDATE_TEXT = { title: v => `Do It ${v} is available`, body: 'Click to download the new version.' };
 
 async function checkForUpdate() {
+  if (chrome.runtime.getBrowserInfo) return; // Firefox installs from AMO update themselves
   try {
     const res = await fetch(RELEASES_API, { headers: { Accept: 'application/vnd.github+json' } });
     if (!res.ok) return;
