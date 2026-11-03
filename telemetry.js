@@ -2,8 +2,8 @@
 // Sends only a random install ID, the version, and whether CW/Quera are connected — no names, tasks or accounts.
 // Users can turn it off from the ◐ menu. Leave the IDs empty to disable it entirely.
 const GA = {
-  measurementId: '', // G-XXXXXXXXXX (Admin → Data streams → your stream)
-  apiSecret: '',     // Admin → Data streams → your stream → Measurement Protocol API secrets
+  measurementId: 'G-S1K1WJB9T5', // G-XXXXXXXXXX (Admin → Data streams → your stream)
+  apiSecret: 'LVfxqcgoRMiNLy3I1tucGA', // Admin → Data streams → your stream → Measurement Protocol API secrets
 };
 const CLIENT_KEY = 'doit-client-id';
 const PING_KEY = 'doit-last-ping';
