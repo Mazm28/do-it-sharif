@@ -19,6 +19,8 @@ A simple to-do list for university courses, as a Chrome extension. It adds your 
 2. Unzip it, open `chrome://extensions`, turn on **Developer mode**, and click **Load unpacked** on the unzipped folder.
 3. Log in to cw.sharif.ir and quera.org in the same browser, then click the extension icon.
 
+**Firefox:** `./build.sh` also makes `dist/do-it-<version>-firefox.zip`. Firefox only installs add-ons signed by Mozilla; for testing, load the zip (or its `manifest.json`) from `about:debugging#/runtime/this-firefox` → **Load Temporary Add-on**.
+
 [راهنمای نصب به فارسی](store/INSTALL-fa.md)
 
 ## Files

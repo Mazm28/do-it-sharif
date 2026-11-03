@@ -1,9 +1,10 @@
-importScripts('sync.js', 'update.js', 'telemetry.js');
+// Chrome runs this as a service worker; Firefox loads the other scripts itself (background.scripts)
+if (typeof importScripts === 'function') importScripts('sync.js', 'update.js', 'telemetry.js');
 
 // Clicking the toolbar icon opens the app (or focuses it if already open)
 chrome.action.onClicked.addListener(async () => {
   const url = chrome.runtime.getURL('index.html');
-  const [tab] = await chrome.tabs.query({ url });
+  const [tab] = await chrome.tabs.query({ url }).catch(() => []);
   if (tab) {
     chrome.tabs.update(tab.id, { active: true });
     chrome.windows.update(tab.windowId, { focused: true });

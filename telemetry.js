@@ -9,11 +9,18 @@ const CLIENT_KEY = 'doit-client-id';
 const PING_KEY = 'doit-last-ping';
 const STATS_OFF_KEY = 'doit-stats-off';
 
+// Firefox asks about data collection at install (data_collection_permissions in the manifest)
+async function firefoxAllowsStats() {
+  if (!chrome.runtime.getBrowserInfo) return true; // Chrome
+  try { return await chrome.permissions.contains({ data_collection: ['technicalAndInteraction'] }); } catch { return true; } // older Firefox
+}
+
 async function pingDaily() {
   if (!GA.measurementId || !GA.apiSecret) return;
   const today = new Date().toISOString().slice(0, 10);
   const data = await chrome.storage.local.get([CLIENT_KEY, PING_KEY, STATS_OFF_KEY, 'doit-sync']);
   if (data[STATS_OFF_KEY] || data[PING_KEY] === today) return;
+  if (!(await firefoxAllowsStats())) return;
   const clientId = data[CLIENT_KEY] || crypto.randomUUID();
   const status = data['doit-sync'] || {};
   try {

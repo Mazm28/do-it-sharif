@@ -49,6 +49,7 @@ const T = {
   syncNow: 'Sync now', syncing: 'Syncing…', never: 'not synced yet',
   syncedAgo: m => m < 1 ? 'synced just now' : m < 60 ? `synced ${m} min ago` : `synced ${Math.floor(m / 60)} h ago`,
   added: n => ` · ${n} new`, newVersion: v => `🎉 Version ${v} is out`, getIt: 'Download', login: 'log in to sync', limited: 'from calendar link ·', loginFull: 'log in for full sync', syncFailed: 'sync failed',
+  allowSites: 'Allow access to CW and Quera', needAccess: 'Do It needs access to CW and Quera to add your assignments.',
   theme: 'Settings', style: 'Style', stats: 'Anonymous usage count', on: 'On', off: 'Off', colorful: 'Colorful', minimal: 'Minimal', mode: 'Mode', auto: 'Auto', light: 'Light', dark: 'Dark',
 };
 const todayIso = () => { const t = new Date(); return `${t.getFullYear()}-${pad(t.getMonth() + 1)}-${pad(t.getDate())}`; };
@@ -432,9 +433,25 @@ const SOURCES = [
   { key: 'cw', label: 'CW', login: 'https://cw.sharif.ir/login/index.php' },
   { key: 'quera', label: 'Quera', login: 'https://quera.org/accounts/login' },
 ];
+// Firefox lets users withhold site access; without it nothing can sync
+const SITES = ['https://cw.sharif.ir/*', 'https://cw.sharif.edu/*', 'https://quera.org/*'];
+let hostOk = true;
+async function checkAccess() {
+  try { hostOk = await chrome.permissions.contains({ origins: SITES }); } catch {}
+  renderSync();
+}
 function renderSync() {
   const bar = document.getElementById('sync');
   if (!store) return;
+  if (!hostOk) {
+    bar.hidden = false;
+    bar.className = 'sync';
+    bar.replaceChildren(el('span', { className: 'source bad', textContent: T.needAccess }),
+      el('button', { type: 'button', textContent: T.allowSites, onclick: async () => {
+        if (await chrome.permissions.request({ origins: SITES })) { hostOk = true; syncNow(); }
+      } }));
+    return;
+  }
   const chips = SOURCES.map(({ key, label, login }) => {
     const s = syncStatus[key];
     const loginLink = textContent => el('a', { href: login, target: '_blank', rel: 'noopener', textContent });
@@ -470,6 +487,7 @@ if (store) {
   store.get(STATUS_KEY).then(d => { syncStatus = d[STATUS_KEY] || {}; renderSync(); });
   store.get(UPDATE_KEY).then(d => { updateInfo = d[UPDATE_KEY] || null; renderUpdate(); });
   setInterval(renderSync, 60000);
+  checkAccess();
 }
 
 // Re-render when the background sync changes the data (but not for our own saves)
