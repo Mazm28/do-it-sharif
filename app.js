@@ -49,7 +49,7 @@ const T = {
   syncNow: 'Sync now', syncing: 'Syncing…', never: 'not synced yet',
   syncedAgo: m => m < 1 ? 'synced just now' : m < 60 ? `synced ${m} min ago` : `synced ${Math.floor(m / 60)} h ago`,
   added: n => ` · ${n} new`, newVersion: v => `🎉 Version ${v} is out`, getIt: 'Download', login: 'log in to sync', limited: 'from calendar link ·', loginFull: 'log in for full sync', syncFailed: 'sync failed',
-  theme: 'Theme', style: 'Style', colorful: 'Colorful', minimal: 'Minimal', mode: 'Mode', auto: 'Auto', light: 'Light', dark: 'Dark',
+  theme: 'Settings', style: 'Style', stats: 'Anonymous usage count', on: 'On', off: 'Off', colorful: 'Colorful', minimal: 'Minimal', mode: 'Mode', auto: 'Auto', light: 'Light', dark: 'Dark',
 };
 const todayIso = () => { const t = new Date(); return `${t.getFullYear()}-${pad(t.getMonth() + 1)}-${pad(t.getDate())}`; };
 const fmtJ = (iso, withYear) => {
@@ -179,6 +179,9 @@ function openPicker(anchor, value, onPick) {
 }
 
 let themeMenu = null;
+const STATS_OFF_KEY = 'doit-stats-off';
+let statsOff = false;
+store?.get(STATS_OFF_KEY).then(d => { statsOff = !!d[STATS_OFF_KEY]; });
 function closeThemeMenu() { themeMenu?.remove(); themeMenu = null; }
 function openThemeMenu(anchor) {
   closeThemeMenu();
@@ -196,6 +199,13 @@ function openThemeMenu(anchor) {
   themeMenu = el('div', { className: 'theme-menu' },
     segment(T.style, 'style', ['colorful', 'minimal']),
     segment(T.mode, 'mode', ['auto', 'light', 'dark']));
+  // Extension only: the once-a-day anonymous "active" ping (telemetry.js)
+  if (store) themeMenu.append(el('div', { className: 'seg-row' },
+    el('span', { textContent: T.stats }),
+    el('div', { className: 'seg' }, ...['on', 'off'].map(value => el('button', {
+      type: 'button', textContent: T[value], className: (statsOff ? 'off' : 'on') === value ? 'on' : '',
+      onclick: () => { statsOff = value === 'off'; store.set({ [STATS_OFF_KEY]: statsOff }); openThemeMenu(anchor); },
+    })))));
   themeMenu.onclick = e => e.stopPropagation();
   popover(anchor, themeMenu);
 }

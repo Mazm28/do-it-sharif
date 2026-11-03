@@ -1,4 +1,4 @@
-importScripts('sync.js', 'update.js');
+importScripts('sync.js', 'update.js', 'telemetry.js');
 
 // Clicking the toolbar icon opens the app (or focuses it if already open)
 chrome.action.onClicked.addListener(async () => {
@@ -12,6 +12,7 @@ chrome.action.onClicked.addListener(async () => {
   }
   syncAll();
   checkForUpdate();
+  pingDaily();
 });
 
 // Check for new assignments every hour, and whenever the browser starts
@@ -20,10 +21,11 @@ chrome.runtime.onInstalled.addListener(() => {
   chrome.alarms.create('update', { periodInMinutes: 12 * 60 });
   syncAll();
   checkForUpdate();
+  pingDaily();
 });
-chrome.runtime.onStartup.addListener(() => { syncAll(); checkForUpdate(); });
+chrome.runtime.onStartup.addListener(() => { syncAll(); checkForUpdate(); pingDaily(); });
 chrome.alarms.onAlarm.addListener(a => {
-  if (a.name === 'sync') syncAll();
+  if (a.name === 'sync') { syncAll(); pingDaily(); }
   if (a.name === 'update') checkForUpdate();
 });
 

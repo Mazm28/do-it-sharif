@@ -67,6 +67,7 @@ Copy these into the Developer Dashboard. The app is in English; the Persian list
 |---|---|
 | `storage` | Saves the user's courses, tasks, settings and sync status locally on their computer. |
 | `alarms` | Checks CW and Quera for new assignments once an hour in the background. |
+| Host `https://www.google-analytics.com/*` | Sends one anonymous "active today" event per day (random install ID, version, CW/Quera connected yes/no) to count users. Can be turned off in the app. |
 | `notifications` | Tells the user once when their CW or Quera login has expired, so new assignments aren't missed. |
 | Host `https://cw.sharif.ir/*`, `https://cw.sharif.edu/*` | Reads the user's own upcoming assignment deadlines from CW (the university's Moodle) with their existing browser login, and their private CW calendar link. `cw.sharif.edu` redirects to `cw.sharif.ir`. |
 | Host `https://quera.org/*` | Reads the user's own upcoming assignment deadlines from their Quera classes page with their existing browser login. |
@@ -74,7 +75,7 @@ Copy these into the Developer Dashboard. The app is in English; the Persian list
 **Remote code:** No, I am not using remote code. All scripts are inside the package. The page only loads a font stylesheet from Google Fonts.
 
 **Data usage:**
-- Google counts data as "collected" only when it leaves the user's device. This extension sends nothing anywhere, so **none of the categories need to be ticked**. If the review asks about it, explain that assignment data read from CW/Quera ("Website content") is stored only locally.
+- Google counts data as "collected" only when it leaves the user's device. The only thing that leaves it is the anonymous daily usage count, so tick **"User activity"** at most (it can be turned off in the app). Assignment data read from CW/Quera ("Website content") is stored only locally.
 - Tick all three certifications: data is not sold, not used for unrelated purposes, and not used for creditworthiness or lending.
 
 **Privacy policy URL:** https://mazm28.github.io/do-it-sharif/store/privacy-policy.html (GitHub Pages, built from `store/privacy-policy.md`)

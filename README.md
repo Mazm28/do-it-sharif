@@ -11,7 +11,7 @@ A simple to-do list for university courses, as a Chrome extension. It adds your 
 - A month calendar with a dot for every task (hover over or tap a day to see what's due), and a list of the next 7 days
 - Keeps syncing CW through your private calendar link if your CW login expires, and reminds you to log in again
 - Colorful or minimal style, light or dark mode
-- Everything stays on your computer: no server, no tracking, and it never sees your password ([privacy policy](store/privacy-policy.md))
+- Your tasks stay on your computer: no server, and it never sees your password. The only thing sent is an anonymous once-a-day "active" count, which can be turned off ([privacy policy](store/privacy-policy.md))
 
 ## Install
 
@@ -27,5 +27,6 @@ A simple to-do list for university courses, as a Chrome extension. It adds your 
 |---|---|
 | `index.html`, `app.js` | The app page (also works as a plain web page without the sync) |
 | `background.js`, `sync.js` | Background service worker: hourly sync, CW/Quera fetching, alerts |
+| `update.js`, `telemetry.js` | New-version check and the anonymous daily usage count |
 | `build.sh` | Packages the extension into a zip |
 | `store/` | Store listing text, privacy policy, install guide, screenshots |
