@@ -2,13 +2,15 @@
 
 A simple to-do list for university courses, as a Chrome extension. It adds your **CW** (cw.sharif.ir) and **Quera** assignment deadlines automatically.
 
-![Do It screenshot](store/screenshots/2-en-dark.png)
+![Do It screenshot](store/screenshots/1-colorful.png)
 
 - Courses with tasks and due dates, picked from a Persian (Jalali) calendar
 - Assignments from CW and Quera, with exact deadline times and links. The extension checks every hour, and submitted ones are ticked off automatically.
-- A month calendar with a dot for every task. Hover over or tap a day to see what's due.
+- Quera assignments past their deadline that still take late submissions get a red "late until…" tag with the real last moment
+- Courses and tasks you delete stay deleted
+- A month calendar with a dot for every task (hover over or tap a day to see what's due), and a list of the next 7 days
 - Keeps syncing CW through your private calendar link if your CW login expires, and reminds you to log in again
-- Persian and English interface, light and dark mode
+- Colorful or minimal style, light or dark mode
 - Everything stays on your computer: no server, no tracking, and it never sees your password ([privacy policy](store/privacy-policy.md))
 
 ## Install

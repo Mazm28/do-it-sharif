@@ -1,6 +1,6 @@
 # Chrome Web Store listing — Do It (Sharif)
 
-Copy these into the Developer Dashboard. Fill in the English listing as the default and add Persian (فارسی) as a second language.
+Copy these into the Developer Dashboard. The app is in English; the Persian listing text is optional.
 
 ## Package
 
@@ -24,7 +24,8 @@ Copy these into the Developer Dashboard. Fill in the English listing as the defa
 > • A month calendar shows a dot for every task. Hover over or tap a day to see what's due.
 > • Overdue and due-soon tasks are highlighted, and each course shows its progress.
 > • If your CW login expires, deadlines keep coming in through your private CW calendar link. A badge reminds you to log in again.
-> • Persian and English interface, with light and dark mode.
+> • Quera assignments that still take late submissions get a red tag with the real last moment.
+> • Colorful or minimal style, with light and dark mode.
 >
 > Privacy: everything stays on your computer. The extension has no server, never sees your password, and only talks to CW and Quera to read your own assignments, using the login already in your browser.
 
@@ -44,14 +45,15 @@ Copy these into the Developer Dashboard. Fill in the English listing as the defa
 > • یک تقویم ماهانه برای هر کار یک نقطه نشان می‌دهد. موس را روی یک روز نگه دار یا لمسش کن تا کارهای آن روز را ببینی.
 > • کارهای عقب‌افتاده و نزدیک مشخص‌اند و هر درس نوار پیشرفت خودش را دارد.
 > • اگر ورود CW منقضی شود، مهلت‌ها از لینک خصوصی تقویم CW همچنان می‌رسند و یک علامت یادآوری می‌کند دوباره وارد شوی.
-> • رابط فارسی و انگلیسی، با حالت روشن و تیره.
+> • تمرین‌های کوئرا که هنوز با تأخیر تحویل گرفته می‌شوند، با برچسب قرمز و مهلت واقعی نشان داده می‌شوند.
+> • ظاهر رنگی یا ساده، با حالت روشن و تیره.
 >
 > حریم خصوصی: همه‌چیز روی کامپیوتر خودت می‌ماند. اکستنشن سرور ندارد، رمز عبورت را هیچ‌وقت نمی‌بیند، و فقط برای خواندن تمرین‌های خودت با همان ورودی مرورگرت به CW و Quera وصل می‌شود.
 
 ## Graphics
 
 - **Store icon (128×128):** `icons/icon128.png`
-- **Screenshots (1280×800):** `store/screenshots/` (Persian and English)
+- **Screenshots (1280×800):** `store/screenshots/` (colorful and minimal, light and dark)
 - **Small promo tile (440×280):** optional; not made yet.
 
 ## Privacy practices tab

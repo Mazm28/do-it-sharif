@@ -159,8 +159,9 @@ async function fetchQuera() {
   const data = json && JSON.parse(json).props?.pageProps?.course;
   if (!data?.course_deadline_widget_data) throw new SyncError('error', 'Quera: unexpected page format');
 
-  const courseIds = new Map((data.courses?.edges || []).map(e => [e.node.name, e.node.id]));
-  return { items: data.course_deadline_widget_data.map(a => ({
+  const courses = (data.courses?.edges || []).map(e => e.node).filter(c => !c.is_archived);
+  const courseIds = new Map(courses.map(c => [c.name, c.id]));
+  const items = data.course_deadline_widget_data.map(a => ({
     extId: `quera:${a.id}`,
     courseExt: `quera:${courseIds.get(a.course_name) ?? a.course_name}`,
     courseName: clean(a.course_name),
@@ -168,7 +169,47 @@ async function fetchQuera() {
     url: `${QUERA}/course/assignments/${a.id}/problems`,
     submitted: a.problems?.length > 0 && a.problems.every(p => p.state !== 'NO_SUBMIT'),
     ...localDateTime(Date.parse(a.finish_time) / 1000),
-  })) };
+  }));
+  for (const c of courses) {
+    try { items.push(...await fetchQueraLate(c)); } catch {} // extra, never fail the main sync over it
+  }
+  return { items };
+}
+
+// The deadline widget drops assignments once their deadline passes, but many still take
+// late submissions for a while ("extra time"). Those come from each class's page.
+const pageData = html => {
+  const json = html.match(/<script id="__NEXT_DATA__"[^>]*>([\s\S]*?)<\/script>/)?.[1];
+  return json && JSON.parse(json).props?.pageProps;
+};
+
+async function fetchQueraLate(course, now = Date.now()) {
+  const html = await (await fetch(`${QUERA}/course/${course.id}`, { credentials: 'include' })).text();
+  const recent = (pageData(html)?.course?.assignments || []).filter(a => {
+    const end = Date.parse(a.finish_time);
+    return end < now && end > now - 21 * 86400000;
+  });
+  const items = [];
+  for (const a of recent) {
+    const url = `${QUERA}/course/assignments/${a.pk}/problems`;
+    const extra = Number((await (await fetch(url, { credentials: 'include' })).text()).match(/var extra_time = (\d+)/)?.[1] || 0);
+    const hardEnd = Date.parse(a.finish_time) + extra * 1000;
+    if (hardEnd <= now) continue;
+    // One row per problem with a final submission
+    const final = await (await fetch(`${QUERA}/course/assignments/${a.pk}/submissions/final`, { credentials: 'include' })).text();
+    const done = new Set([...final.matchAll(/data-problem_id="(\d+)"/g)].map(m => m[1])).size;
+    items.push({
+      extId: `quera:${a.pk}`,
+      courseExt: `quera:${course.id}`,
+      courseName: clean(course.name),
+      name: clean(a.name),
+      url,
+      submitted: done > 0 && done >= (a.problem_count || 1),
+      ...localDateTime(Date.parse(a.finish_time) / 1000),
+      late: localDateTime(hardEnd / 1000), // last moment a late submission is accepted
+    });
+  }
+  return items;
 }
 
 // A course can be linked to both CW and Quera (older data stored a single `ext`)
@@ -179,7 +220,8 @@ const linksOf = c => c.exts || (c.ext ? [c.ext] : []);
 function merge(courses, items, dismissed) {
   let added = 0;
   for (const item of items) {
-    if (dismissed.has(item.extId) || dismissed.has(item.legacyId)) continue;
+    // Deleted tasks and every task of a deleted course stay deleted
+    if (dismissed.has(item.extId) || dismissed.has(item.legacyId) || dismissed.has(item.courseExt)) continue;
     let task = courses.flatMap(c => c.tasks).find(t => t.extId === item.extId || (item.legacyId && t.extId === item.legacyId));
     if (task && item.partial) { Object.assign(task, { due: item.due, time: item.time }); continue; }
 
@@ -192,9 +234,11 @@ function merge(courses, items, dismissed) {
     course.exts = [...new Set([...linksOf(course), item.courseExt])];
     delete course.ext;
 
-    const fields = { name: item.name, due: item.due, time: item.time, url: item.url };
-    if (task) Object.assign(task, fields, { extId: item.extId });
-    else {
+    const fields = { name: item.name, due: item.due, time: item.time, url: item.url, ...(item.late && { late: item.late }) };
+    if (task) {
+      Object.assign(task, fields, { extId: item.extId });
+      if (!item.late) delete task.late;
+    } else {
       task = { id: uid(), extId: item.extId, done: false, ...fields };
       course.tasks.push(task);
       added++;
@@ -245,8 +289,8 @@ const LOGIN_URLS = { cw: CW + '/login/index.php', quera: QUERA + '/accounts/logi
 const SOURCE_NAMES = { cw: 'CW', quera: 'Quera' };
 const needsLogin = s => s?.error === 'login' || s?.limited;
 const ALERT_TEXT = {
-  en: { title: n => `Log in to ${n} again`, body: n => `Your ${n} session expired, so new assignments may be missed. Click to log in.` },
-  fa: { title: n => `دوباره وارد ${n} شو`, body: n => `نشست ${n} منقضی شده و ممکن است تمرین‌های جدید جا بمانند. برای ورود کلیک کن.` },
+  title: n => `Log in to ${n} again`,
+  body: n => `Your ${n} session expired, so new assignments may be missed. Click to log in.`,
 };
 
 async function updateAlerts(before, status) {
@@ -254,12 +298,11 @@ async function updateAlerts(before, status) {
   await chrome.action.setBadgeText({ text: expired.length ? '!' : '' });
   await chrome.action.setBadgeBackgroundColor({ color: '#e0475b' });
 
-  const lang = (await chrome.storage.local.get('doit-lang'))['doit-lang'] === 'fa' ? 'fa' : 'en';
   for (const k of expired) {
     if (needsLogin(before[k])) continue; // only notify when it newly expires
     chrome.notifications.create('login:' + k, {
       type: 'basic', iconUrl: 'icons/icon128.png', priority: 2,
-      title: ALERT_TEXT[lang].title(SOURCE_NAMES[k]), message: ALERT_TEXT[lang].body(SOURCE_NAMES[k]),
+      title: ALERT_TEXT.title(SOURCE_NAMES[k]), message: ALERT_TEXT.body(SOURCE_NAMES[k]),
     });
   }
   for (const k of Object.keys(SOURCES)) if (!needsLogin(status[k])) chrome.notifications.clear('login:' + k);

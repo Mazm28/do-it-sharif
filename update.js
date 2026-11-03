@@ -11,10 +11,7 @@ function isNewer(a, b) {
   return false;
 }
 
-const UPDATE_TEXT = {
-  en: { title: v => `Do It ${v} is available`, body: 'Click to download the new version.' },
-  fa: { title: v => `نسخه‌ی جدید Do It (${v}) آمده`, body: 'برای دانلود نسخه‌ی جدید کلیک کن.' },
-};
+const UPDATE_TEXT = { title: v => `Do It ${v} is available`, body: 'Click to download the new version.' };
 
 async function checkForUpdate() {
   try {
@@ -29,10 +26,9 @@ async function checkForUpdate() {
     const saved = (await chrome.storage.local.get(UPDATE_KEY))[UPDATE_KEY];
     const info = { version: latest, url: release.html_url, notified: saved?.version === latest && saved.notified };
     if (!info.notified) {
-      const lang = (await chrome.storage.local.get('doit-lang'))['doit-lang'] === 'fa' ? 'fa' : 'en';
       chrome.notifications.create('update', {
         type: 'basic', iconUrl: 'icons/icon128.png',
-        title: UPDATE_TEXT[lang].title(latest), message: UPDATE_TEXT[lang].body,
+        title: UPDATE_TEXT.title(latest), message: UPDATE_TEXT.body,
       });
       info.notified = true; // one notification per new version
     }
