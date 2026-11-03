@@ -36,7 +36,7 @@ For each new version: raise `"version"` in `manifest.json`, run `./build.sh`, th
 >
 > Privacy: your tasks stay on your computer. The add-on has no server. The only thing it sends is an anonymous once-a-day "active" count, which you can turn off.
 
-**Categories:** Alerts & Updates, Other
+**Categories:** Alerts & Updates (AMO has no "Other" to combine it with)
 
 **Tags:** university, todo, deadlines, calendar, sharif
 
@@ -44,7 +44,7 @@ For each new version: raise `"version"` in `manifest.json`, run `./build.sh`, th
 
 **Support website:** https://github.com/Mazm28/do-it-sharif
 
-**License:** AMO asks for one. The repo doesn't have a license yet; MIT is the usual pick for "anyone may use and change it".
+**License:** MIT License (same as `LICENSE` in the repo)
 
 **Privacy policy:** tick "This add-on has a privacy policy" and paste the English part of `store/privacy-policy.md`. It is also published at https://mazm28.github.io/do-it-sharif/store/privacy-policy.html
 
