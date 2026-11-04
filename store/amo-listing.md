@@ -57,7 +57,7 @@ For each new version: raise `"version"` in `manifest.json`, run `./build.sh`, th
 > This add-on is a to-do list for students of Sharif University of Technology (Iran). It reads the student's own upcoming assignments from two sites they already use, with the login session already in the browser:
 >
 > - CW (cw.sharif.ir, the university's Moodle): Moodle's own AJAX web service `core_calendar_get_action_events_by_timesort` (sync.js, fetchCwSession). If the session has expired, it uses the private calendar export link that Moodle generates for the user (fetchCwIcal).
-> - Quera (quera.org): the data embedded in the user's own class pages (sync.js, fetchQuera, fetchQueraLate).
+> - Quera (quera.org): the data embedded in the user's own class pages (sync.js, fetchQuera, fetchQueraRecent).
 >
 > Both need a Sharif student account, so reviewers can't test the sync. Without it, the add-on still works as a plain to-do list: click the toolbar icon, then add a course and tasks. The sync bar will say "log in to sync".
 >

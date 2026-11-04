@@ -167,23 +167,25 @@ async function fetchQuera() {
     courseName: clean(a.course_name),
     name: clean(a.name),
     url: `${QUERA}/course/assignments/${a.id}/problems`,
-    submitted: a.problems?.length > 0 && a.problems.every(p => p.state !== 'NO_SUBMIT'),
+    // Some parts are often optional or alternatives, so any submission counts
+    submitted: a.problems?.some(p => p.state !== 'NO_SUBMIT') ?? false,
     ...localDateTime(Date.parse(a.finish_time) / 1000),
   }));
   for (const c of courses) {
-    try { items.push(...await fetchQueraLate(c)); } catch {} // extra, never fail the main sync over it
+    try { items.push(...await fetchQueraRecent(c)); } catch {} // extra, never fail the main sync over it
   }
   return { items };
 }
 
-// The deadline widget drops assignments once their deadline passes, but many still take
-// late submissions for a while ("extra time"). Those come from each class's page.
+// The deadline widget drops assignments once their deadline passes. Recent ones come from each
+// class's page instead: to tick off what was submitted, and to show the late-submission window
+// ("extra time") while Quera still accepts uploads.
 const pageData = html => {
   const json = html.match(/<script id="__NEXT_DATA__"[^>]*>([\s\S]*?)<\/script>/)?.[1];
   return json && JSON.parse(json).props?.pageProps;
 };
 
-async function fetchQueraLate(course, now = Date.now()) {
+async function fetchQueraRecent(course, now = Date.now()) {
   const html = await (await fetch(`${QUERA}/course/${course.id}`, { credentials: 'include' })).text();
   const recent = (pageData(html)?.course?.assignments || []).filter(a => {
     const end = Date.parse(a.finish_time);
@@ -192,9 +194,11 @@ async function fetchQueraLate(course, now = Date.now()) {
   const items = [];
   for (const a of recent) {
     const url = `${QUERA}/course/assignments/${a.pk}/problems`;
-    const extra = Number((await (await fetch(url, { credentials: 'include' })).text()).match(/var extra_time = (\d+)/)?.[1] || 0);
+    const page = await (await fetch(url, { credentials: 'include' })).text();
+    const extra = Number(page.match(/var extra_time = (\d+)/)?.[1] || 0);
     const hardEnd = Date.parse(a.finish_time) + extra * 1000;
-    if (hardEnd <= now) continue;
+    // extra_time is set even where late uploads are off; the page says so when they are
+    const open = hardEnd > now && !page.includes('مهلت ارسال پاسخ تمام شده است');
     // One row per problem with a final submission
     const final = await (await fetch(`${QUERA}/course/assignments/${a.pk}/submissions/final`, { credentials: 'include' })).text();
     const done = new Set([...final.matchAll(/data-problem_id="(\d+)"/g)].map(m => m[1])).size;
@@ -204,9 +208,10 @@ async function fetchQueraLate(course, now = Date.now()) {
       courseName: clean(course.name),
       name: clean(a.name),
       url,
-      submitted: done > 0 && done >= (a.problem_count || 1),
+      submitted: done > 0,
       ...localDateTime(Date.parse(a.finish_time) / 1000),
-      late: localDateTime(hardEnd / 1000), // last moment a late submission is accepted
+      ...(open ? { late: localDateTime(hardEnd / 1000) } // last moment a late submission is accepted
+        : { existingOnly: true }), // closed: only update tasks already on the list, never add old ones
     });
   }
   return items;
@@ -224,6 +229,8 @@ function merge(courses, items, dismissed) {
     if (dismissed.has(item.extId) || dismissed.has(item.legacyId) || dismissed.has(item.courseExt)) continue;
     let task = courses.flatMap(c => c.tasks).find(t => t.extId === item.extId || (item.legacyId && t.extId === item.legacyId));
     if (task && item.partial) { Object.assign(task, { due: item.due, time: item.time }); continue; }
+
+    if (!task && item.existingOnly) continue;
 
     let course = courses.find(c => linksOf(c).includes(item.courseExt))
       || courses.find(c => c.name.trim() === item.courseName);
