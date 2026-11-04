@@ -263,6 +263,23 @@ function markSubmitted(courses, prefix, present, now) {
   }
 }
 
+// Past-deadline CW assignments also leave the Timeline when they close, so missing isn't proof
+// of submission. Their own page says it: Moodle marks a submitted one "submissionstatussubmitted".
+// Returns the extIds found submitted.
+async function submittedPast(courses, prefix, present, now) {
+  const found = new Set();
+  for (const task of courses.flatMap(c => c.tasks)) {
+    if (task.done || !task.extId?.startsWith(prefix) || present.has(task.extId) || !task.due) continue;
+    const end = new Date(`${task.due}T${task.time || '23:59'}`).getTime();
+    if (end > now || end < now - 14 * 86400000 || !/\/mod\/assign\/view\.php/.test(task.url || '')) continue;
+    try {
+      const html = await (await fetch(task.url, { credentials: 'include' })).text();
+      if (html.includes('submissionstatussubmitted')) found.add(task.extId);
+    } catch {} // try again on the next sync
+  }
+  return found;
+}
+
 const SOURCES = { cw: fetchCw, quera: fetchQuera };
 let running = null;
 
@@ -276,10 +293,14 @@ async function doSync() {
   for (const [name, fetchItems] of Object.entries(SOURCES)) {
     try {
       const { items, limited, complete } = await fetchItems();
+      const present = new Set(items.map(i => i.extId));
+      // Page checks take a while, so they run before reading the list the user may be editing
+      const pastDone = complete ? await submittedPast((await chrome.storage.local.get(KEY))[KEY] || [], complete, present, Date.now()) : new Set();
       const data = await chrome.storage.local.get([KEY, DISMISSED_KEY]);
       const courses = data[KEY] || [];
       const added = merge(courses, items, new Set(data[DISMISSED_KEY] || []));
-      if (complete) markSubmitted(courses, complete, new Set(items.map(i => i.extId)), Date.now());
+      if (complete) markSubmitted(courses, complete, present, Date.now());
+      for (const task of courses.flatMap(c => c.tasks)) if (pastDone.has(task.extId)) task.done = true;
       await chrome.storage.local.set({ [KEY]: courses });
       status[name] = { ok: true, at: Date.now(), added, ...(limited && { limited }) };
     } catch (e) {
@@ -315,4 +336,4 @@ async function updateAlerts(before, status) {
   for (const k of Object.keys(SOURCES)) if (!needsLogin(status[k])) chrome.notifications.clear('login:' + k);
 }
 
-if (typeof module !== 'undefined') module.exports = { merge, markSubmitted, clean, localDateTime, needsLogin, parseIcal, icalItems };
+if (typeof module !== 'undefined') module.exports = { merge, markSubmitted, submittedPast, clean, localDateTime, needsLogin, parseIcal, icalItems };
