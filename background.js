@@ -1,5 +1,5 @@
 // Chrome runs this as a service worker; Firefox loads the other scripts itself (background.scripts)
-if (typeof importScripts === 'function') importScripts('sync.js', 'update.js', 'telemetry.js');
+if (typeof importScripts === 'function') importScripts('sync.js', 'update.js', 'telemetry.js', 'email.js');
 
 // Clicking the toolbar icon opens the app (or focuses it if already open)
 chrome.action.onClicked.addListener(async () => {
@@ -26,13 +26,21 @@ chrome.runtime.onInstalled.addListener(() => {
 });
 chrome.runtime.onStartup.addListener(() => { syncAll(); checkForUpdate(); pingDaily(); });
 chrome.alarms.onAlarm.addListener(a => {
-  if (a.name === 'sync') { syncAll(); pingDaily(); }
+  if (a.name === 'sync') { syncAll().then(pushReminders); pingDaily(); }
   if (a.name === 'update') checkForUpdate();
 });
 
 // The app page asks for a sync with the "Sync now" button
 chrome.runtime.onMessage.addListener((msg, _sender, reply) => {
   if (msg === 'sync') { syncAll().then(reply); return true; }
+});
+
+// Keep the email-reminder server's copy of the task list current (synced or edited by hand)
+let pushTimer = null;
+chrome.storage.onChanged.addListener((changes, area) => {
+  if (area !== 'local' || !changes[KEY]) return;
+  clearTimeout(pushTimer);
+  pushTimer = setTimeout(pushReminders, 3000);
 });
 
 // Clicking a notification opens the login page (expired login) or the release page (update)

@@ -4,11 +4,11 @@
 set -euo pipefail
 cd "$(dirname "$0")"
 
-FILES=(manifest.json index.html app.js background.js sync.js update.js telemetry.js icons)
+FILES=(manifest.json index.html app.js background.js sync.js update.js telemetry.js email.js icons)
 VERSION=$(sed -n 's/.*"version": *"\([^"]*\)".*/\1/p' manifest.json)
 OUT="dist/do-it-$VERSION.zip"
 
-for f in app.js background.js sync.js update.js telemetry.js; do node --check "$f"; done
+for f in app.js background.js sync.js update.js telemetry.js email.js; do node --check "$f"; done
 
 mkdir -p dist
 rm -f "$OUT"
@@ -24,7 +24,7 @@ cp -r "${FILES[@]}" "$FF_DIR"
 node -e '
 const fs = require("fs"), path = process.argv[1] + "/manifest.json";
 const m = JSON.parse(fs.readFileSync(path, "utf8"));
-m.background = { scripts: ["sync.js", "update.js", "telemetry.js", "background.js"] };
+m.background = { scripts: ["sync.js", "update.js", "telemetry.js", "email.js", "background.js"] };
 m.browser_specific_settings = { gecko: {
   id: "do-it-sharif@mazm28.github.io",
   strict_min_version: "140.0",

@@ -1,0 +1,17 @@
+name = "do-it-reminders"
+main = "worker.js"
+compatibility_date = "2026-10-01"
+
+# Look for reminders that are now less than a day away
+[triggers]
+crons = ["*/15 * * * *"]
+
+[[d1_databases]]
+binding = "DB"
+database_name = "do-it-reminders"
+database_id = "" # from `npx wrangler d1 create do-it-reminders`
+
+[vars]
+FROM = "Do It <reminders@example.com>" # an address on a domain verified in Resend
+ORIGIN = "https://do-it-reminders.example.workers.dev" # this Worker's own address (shown by `wrangler deploy`)
+# Secret, not here: npx wrangler secret put RESEND_KEY

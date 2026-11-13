@@ -50,6 +50,8 @@ const T = {
   syncedAgo: m => m < 1 ? 'synced just now' : m < 60 ? `synced ${m} min ago` : `synced ${Math.floor(m / 60)} h ago`,
   added: n => ` · ${n} new`, newVersion: v => `🎉 Version ${v} is out`, getIt: 'Download', login: 'log in to sync', limited: 'from calendar link ·', loginFull: 'log in for full sync', syncFailed: 'sync failed',
   allowSites: 'Allow access to CW and Quera', needAccess: 'Do It needs access to CW and Quera to add your assignments.',
+  remind: 'Email a day before deadlines', emailPh: 'you@sharif.edu', turnOn: 'Turn on', turnOff: 'Turn off',
+  checkInbox: a => `Click the link sent to ${a}`, remindOn: a => `On · ${a}`, emailFailed: 'Could not send the email. Try again later.',
   theme: 'Settings', style: 'Style', stats: 'Anonymous usage count', on: 'On', off: 'Off', colorful: 'Colorful', minimal: 'Minimal', mode: 'Mode', auto: 'Auto', light: 'Light', dark: 'Dark',
 };
 const todayIso = () => { const t = new Date(); return `${t.getFullYear()}-${pad(t.getMonth() + 1)}-${pad(t.getDate())}`; };
@@ -183,6 +185,36 @@ let themeMenu = null;
 const STATS_OFF_KEY = 'doit-stats-off';
 let statsOff = false;
 store?.get(STATS_OFF_KEY).then(d => { statsOff = !!d[STATS_OFF_KEY]; });
+// Email reminders (email.js), shown only when the reminder server is set up
+let emailInfo = null, emailError = false;
+const remindAvailable = () => store && REMIND.url;
+store?.get(EMAIL_KEY).then(d => { emailInfo = d[EMAIL_KEY] || null; });
+function emailRow(anchor) {
+  const redraw = () => themeMenu && openThemeMenu(anchor);
+  const row = el('div', { className: 'seg-row' }, el('span', { textContent: T.remind }));
+  if (emailInfo) {
+    row.append(el('div', { className: 'email-state' },
+      el('span', { textContent: emailInfo.state === 'on' ? T.remindOn(emailInfo.address) : T.checkInbox(emailInfo.address) }),
+      el('button', { type: 'button', className: 'email-off', textContent: T.turnOff,
+        onclick: async () => { await emailUnsubscribe().catch(() => chrome.storage.local.remove(EMAIL_KEY)); emailInfo = null; redraw(); } })));
+  } else {
+    const input = el('input', { type: 'email', required: true, placeholder: T.emailPh, dir: 'ltr' });
+    const button = el('button', { className: 'btn', textContent: T.turnOn });
+    row.append(el('form', { className: 'email-form', onsubmit: async e => {
+      e.preventDefault();
+      button.disabled = true;
+      try {
+        await emailSubscribe(input.value.trim());
+        emailInfo = (await store.get(EMAIL_KEY))[EMAIL_KEY];
+        emailError = false;
+      } catch { emailError = true; }
+      redraw();
+    } }, input, button));
+    if (emailError) row.append(el('span', { className: 'email-error', textContent: T.emailFailed }));
+  }
+  return row;
+}
+
 function closeThemeMenu() { themeMenu?.remove(); themeMenu = null; }
 function openThemeMenu(anchor) {
   closeThemeMenu();
@@ -207,6 +239,7 @@ function openThemeMenu(anchor) {
       type: 'button', textContent: T[value], className: (statsOff ? 'off' : 'on') === value ? 'on' : '',
       onclick: () => { statsOff = value === 'off'; store.set({ [STATS_OFF_KEY]: statsOff }); openThemeMenu(anchor); },
     })))));
+  if (remindAvailable()) themeMenu.append(emailRow(anchor));
   themeMenu.onclick = e => e.stopPropagation();
   popover(anchor, themeMenu);
 }
@@ -495,6 +528,7 @@ store && chrome.storage.onChanged.addListener((changes, area) => {
   const next = changes[KEY]?.newValue;
   if (area === 'local' && changes[STATUS_KEY]) { syncStatus = changes[STATUS_KEY].newValue || {}; renderSync(); }
   if (area === 'local' && changes[UPDATE_KEY]) { updateInfo = changes[UPDATE_KEY].newValue || null; renderUpdate(); }
+  if (area === 'local' && changes[EMAIL_KEY]) emailInfo = changes[EMAIL_KEY].newValue || null;
   if (area !== 'local' || !next || JSON.stringify(next) === JSON.stringify(courses)) return;
   courses = next;
   render();

@@ -10,8 +10,9 @@ A simple to-do list for university courses, as a Chrome extension. It adds your 
 - Courses and tasks you delete stay deleted
 - A month calendar with a dot for every task (hover over or tap a day to see what's due), and a list of the next 7 days
 - Keeps syncing CW through your private calendar link if your CW login expires, and reminds you to log in again
+- Optional email a day before each deadline (turn it on in the ◐ menu)
 - Colorful or minimal style, light or dark mode
-- Your tasks stay on your computer: no server, and it never sees your password. The only thing sent is an anonymous once-a-day "active" count, which can be turned off ([privacy policy](store/privacy-policy.md))
+- Your tasks stay on your computer, and it never sees your password. The only thing sent is an anonymous once-a-day "active" count, which can be turned off, and, only if you turn on email reminders, your email address and upcoming deadlines ([privacy policy](store/privacy-policy.md))
 
 ## Install
 
@@ -30,5 +31,6 @@ A simple to-do list for university courses, as a Chrome extension. It adds your 
 | `index.html`, `app.js` | The app page (also works as a plain web page without the sync) |
 | `background.js`, `sync.js` | Background service worker: hourly sync, CW/Quera fetching, alerts |
 | `update.js`, `telemetry.js` | New-version check and the anonymous daily usage count |
+| `email.js`, `server/` | Optional email reminders: the extension side, and the Cloudflare Worker that sends them ([setup](server/README.md)) |
 | `build.sh` | Packages the extension into a zip |
 | `store/` | Store listing text, privacy policy, install guide, screenshots |

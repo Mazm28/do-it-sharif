@@ -1,6 +1,6 @@
 # Privacy Policy — Do It (Sharif)
 
-_Last updated: 3 November 2026 (12 Aban 1405)_
+_Last updated: 13 November 2026 (22 Aban 1405)_
 
 Do It is a to-do list for university courses. It can also add assignment deadlines from CW (cw.sharif.ir) and Quera (quera.org) to your list automatically.
 
@@ -15,7 +15,8 @@ Do It is a to-do list for university courses. It can also add assignment deadlin
 
 All of the data above is stored **only on your own computer**, in your browser's extension storage.
 
-- **Your tasks, courses, assignments and accounts are never sent** to the developer or to anyone else. The extension has no server.
+- **Your tasks, courses, assignments and accounts are never sent** to the developer or to anyone else, unless you turn on email reminders (below).
+- **Email reminders (off unless you turn them on).** If you turn on "Email a day before deadlines" in the ◐ menu, the extension sends the developer's reminder server (a Cloudflare Worker) your email address, your time zone, and the name, course, link and deadline of your unfinished tasks due in the next month. The server keeps only this, uses it only to email you a day before each deadline, and sends the emails through Resend. Nothing is sent before you confirm the address from the email you receive. Turning reminders off, in the ◐ menu or with the link in any reminder email, deletes your address and tasks from the server.
 - **Anonymous usage count.** Once a day the extension tells Google Analytics that one copy was active. This message contains only a random ID made on your computer (not linked to your name, email or student accounts), the extension's version, and whether CW and Quera are connected (yes/no). The developer uses it only to know how many people use Do It. You can turn it off in the ◐ menu under "Anonymous usage count". In Firefox you can also untick it when installing.
 - Besides that daily count, it only connects to **cw.sharif.ir** (and cw.sharif.edu), **quera.org**, and (in the Chrome version) GitHub to check for new versions. It uses CW and Quera only to read your own assignments, the same way your browser does when you open those sites.
 - It **never sees or stores your passwords.** It uses the login session you already have in the browser.
@@ -35,7 +36,7 @@ Questions about this policy: ali.meschi24@sharif.edu
 
 # سیاست حریم خصوصی — Do It (شریف)
 
-_آخرین به‌روزرسانی: ۱۲ آبان ۱۴۰۵_
+_آخرین به‌روزرسانی: ۲۲ آبان ۱۴۰۵_
 
 Do It یک فهرست کارها برای درس‌های دانشگاه است. می‌تواند مهلت تمرین‌های CW (cw.sharif.ir) و Quera (quera.org) را هم خودکار به فهرست شما اضافه کند.
 
@@ -50,7 +51,8 @@ Do It یک فهرست کارها برای درس‌های دانشگاه است.
 
 همه‌ی این داده‌ها **فقط روی کامپیوتر خود شما**، در حافظه‌ی اکستنشن مرورگرتان، ذخیره می‌شوند.
 
-- **کارها، درس‌ها، تمرین‌ها و حساب‌های شما هیچ‌وقت فرستاده نمی‌شوند**؛ نه برای سازنده و نه برای کس دیگر. اکستنشن سرور ندارد.
+- **کارها، درس‌ها، تمرین‌ها و حساب‌های شما هیچ‌وقت فرستاده نمی‌شوند**؛ نه برای سازنده و نه برای کس دیگر، مگر اینکه یادآور ایمیلی را روشن کنید (پایین‌تر).
+- **یادآور ایمیلی (خاموش، مگر اینکه خودتان روشنش کنید).** اگر از منوی ◐ گزینه‌ی «Email a day before deadlines» را روشن کنید، اکستنشن آدرس ایمیل، منطقه‌ی زمانی، و اسم، درس، لینک و مهلت کارهای انجام‌نشده‌ی یک ماه آینده‌تان را به سرور یادآور سازنده (یک Cloudflare Worker) می‌فرستد. سرور فقط همین‌ها را نگه می‌دارد، فقط برای فرستادن ایمیل یک روز قبل از هر مهلت از آن‌ها استفاده می‌کند، و ایمیل‌ها را با Resend می‌فرستد. تا آدرس را از ایمیلی که برایتان می‌آید تأیید نکنید، ایمیلی فرستاده نمی‌شود. با خاموش کردن یادآور، از منوی ◐ یا با لینک داخل هر ایمیل، آدرس و کارهای شما از سرور پاک می‌شود.
 - **شمارش ناشناس کاربران.** اکستنشن روزی یک بار به Google Analytics خبر می‌دهد که یک نسخه از آن فعال بوده. این پیام فقط یک شناسه‌ی تصادفی (که روی کامپیوتر خودتان ساخته می‌شود و به اسم، ایمیل یا حساب‌های دانشجویی‌تان ربطی ندارد)، شماره‌ی نسخه، و وصل بودن یا نبودن CW و Quera را دارد. سازنده فقط برای دانستن تعداد کاربران از آن استفاده می‌کند. می‌توانید از منوی ◐ و گزینه‌ی «Anonymous usage count» خاموشش کنید. در فایرفاکس موقع نصب هم می‌توانید تیکش را بردارید.
 - جز این شمارش روزانه، فقط به **cw.sharif.ir** (و cw.sharif.edu)، **quera.org**، و (در نسخه‌ی کروم) GitHub برای پیدا کردن نسخه‌ی جدید وصل می‌شود. از CW و Quera فقط برای خواندن تمرین‌های خود شما استفاده می‌کند؛ همان کاری که مرورگرتان موقع باز کردن این سایت‌ها می‌کند.
 - **رمز عبور شما را هیچ‌وقت نمی‌بیند و ذخیره نمی‌کند.** از همان ورودی استفاده می‌کند که در مرورگر دارید.

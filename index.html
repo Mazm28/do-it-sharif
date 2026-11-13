@@ -82,12 +82,12 @@
   }
   .round:hover { border-color: var(--accent); }
 
-  input[type=text] {
+  input[type=text], input[type=email] {
     font: inherit; color: inherit; background: var(--solid);
     border: 1.5px solid var(--line); border-radius: 12px; padding: 11px 14px; min-width: 0;
     outline: none; transition: border-color .15s, box-shadow .15s;
   }
-  input[type=text]:focus { border-color: var(--accent); box-shadow: 0 0 0 4px var(--accent-soft); }
+  input[type=text]:focus, input[type=email]:focus { border-color: var(--accent); box-shadow: 0 0 0 4px var(--accent-soft); }
   button { font: inherit; cursor: pointer; border: 0; }
   .btn {
     border-radius: 12px; padding: 11px 18px; font-weight: 600;
@@ -215,6 +215,12 @@
   .seg { display: flex; gap: 2px; padding: 3px; border-radius: 12px; background: var(--line); }
   .seg button { flex: 1; padding: 6px 12px; border-radius: 9px; background: none; color: var(--muted); font-weight: 600; font-size: 13px; }
   .seg button.on { background: var(--solid); color: var(--text); box-shadow: 0 1px 3px #0002; }
+  .email-form { display: flex; gap: 6px; width: 260px; }
+  .email-form input { flex: 1; padding: 7px 10px; font-size: 13px; border-radius: 10px; }
+  .email-form .btn, .email-off { padding: 7px 12px; font-size: 13px; border-radius: 10px; }
+  .email-state { display: flex; align-items: center; justify-content: space-between; gap: 10px; width: 260px; font-size: 13px; overflow-wrap: anywhere; }
+  .email-off { background: var(--line); color: var(--text); font-weight: 600; flex-shrink: 0; }
+  .email-error { color: var(--danger); font-size: 12px; }
 
   .update {
     display: flex; align-items: center; gap: 10px; width: fit-content; max-width: 100%; margin: -8px 0 20px;
@@ -319,6 +325,7 @@
   </div>
 </main>
 
+<script src="email.js"></script>
 <script src="app.js"></script>
 </body>
 </html>
