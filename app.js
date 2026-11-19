@@ -36,7 +36,8 @@ const jMonthLength = (jy, jm) => jm <= 6 ? 31 : jm <= 11 ? 30 : (g2j(...j2g(jy, 
 const T = {
   addCoursePh: 'Add a course or topic…', addCourse: 'Add course',
   newTask: 'New task…', dueDate: 'Due date', add: 'Add', del: 'Delete', delCourse: 'Delete course', delTask: 'Delete task',
-  confirmDel: n => `Delete "${n}" and all its tasks?`, markDone: 'Mark as done', markUndone: 'Mark as not done',
+  confirmDel: n => `Delete "${n}" and all its tasks? You can restore it later from "Deleted courses" at the bottom.`,
+  deletedCourses: n => `Deleted courses (${n})`, restore: 'Restore', restoreHint: 'Bring this course back; sync adds its assignments again', markDone: 'Mark as done', markUndone: 'Mark as not done',
   noDate: 'no date', overdue: l => `overdue · ${l}`, today: 'today', tomorrow: 'tomorrow', inDays: n => `in ${n} days`,
   late: l => `late until ${l}`, lateHint: 'The deadline has passed, but late submissions are still accepted until then',
   doneOf: (d, t) => `${d}/${t} done`, noTasks: 'no tasks yet', allDone: 'All caught up 🎉',
@@ -74,6 +75,8 @@ applyTheme();
 // ---- Data ----
 const KEY = 'doit-data';
 const DISMISSED_KEY = 'doit-dismissed';
+const DELETED_KEY = 'doit-deleted-courses'; // copies of deleted courses, for Restore
+const HIDDEN_KEY = 'doit-hidden-courses'; // { courseExt: name }, from the sync: deleted courses the sites still list
 const STATUS_KEY = 'doit-sync';
 const UPDATE_KEY = 'doit-update';
 const COLORS = ['#6c5ce7', '#00a884', '#f0643c', '#2f80ed', '#e84393', '#d98a00', '#0fb5ae', '#8e44ad'];
@@ -361,6 +364,7 @@ function render() {
   document.getElementById('today').textContent = longDate(t);
   renderCalendar();
   renderUpcoming();
+  renderDeleted();
   const open = courses.flatMap(c => c.tasks).filter(x => !x.done);
   const dueSoon = open.filter(x => x.due && x.due <= t).length;
   document.getElementById('summary').textContent = !courses.length ? ''
@@ -386,7 +390,10 @@ function render() {
         onclick: () => {
           if (!confirm(T.confirmDel(c.name))) return;
           courses = courses.filter(x => x !== c);
-          dismiss([...(c.exts || (c.ext ? [c.ext] : [])), ...c.tasks.map(x => x.extId)]).then(save);
+          deleted = [{ ...c, deletedAt: Date.now() }, ...deleted];
+          setValue(DELETED_KEY, deleted);
+          // Hiding the course's CW/Quera links keeps sync from re-creating it
+          dismiss(c.exts || (c.ext ? [c.ext] : [])).then(save);
         }
       }));
     // The bar starts at its previous value and slides to the new one
@@ -459,6 +466,59 @@ async function dismiss(ids) {
   const list = (await store.get(DISMISSED_KEY))[DISMISSED_KEY] || [];
   await store.set({ [DISMISSED_KEY]: [...new Set([...list, ...ids])] });
 }
+async function undismiss(ids) {
+  if (!store) return;
+  const list = (await store.get(DISMISSED_KEY))[DISMISSED_KEY] || [];
+  await store.set({ [DISMISSED_KEY]: list.filter(x => !ids.includes(x)) });
+}
+
+// ---- Deleted courses, restorable ----
+let deleted = [], hidden = {};
+async function getValue(key, fallback) {
+  if (store) return (await store.get(key))[key] ?? fallback;
+  try { return JSON.parse(localStorage.getItem(key)) ?? fallback; } catch { return fallback; }
+}
+function setValue(key, value) {
+  if (store) store.set({ [key]: value });
+  else try { localStorage.setItem(key, JSON.stringify(value)); } catch {}
+}
+const linksOf = c => c.exts || (c.ext ? [c.ext] : []);
+const sourceOf = links => [...new Set(links.map(l => l.startsWith('cw:') ? 'CW' : l.startsWith('quera:') ? 'Quera' : ''))].filter(Boolean).join(' · ');
+
+// Saved copies, plus deleted courses the sync still sees on CW/Quera (also covers ones deleted before this list existed)
+function deletedEntries() {
+  const saved = new Set(deleted.flatMap(linksOf));
+  return [...deleted, ...Object.entries(hidden).filter(([ext]) => !saved.has(ext)).map(([ext, name]) => ({ name, exts: [ext] }))];
+}
+
+async function restore(entry) {
+  const links = linksOf(entry);
+  await undismiss([...links, ...(entry.tasks || []).map(t => t.extId)]);
+  if (entry.id) {
+    const { deletedAt, ...course } = entry;
+    courses.push(course);
+    deleted = deleted.filter(x => x !== entry);
+    setValue(DELETED_KEY, deleted);
+  }
+  hidden = Object.fromEntries(Object.entries(hidden).filter(([ext]) => !links.includes(ext)));
+  setValue(HIDDEN_KEY, hidden);
+  save();
+  if (store && links.length) syncNow(); // fills in assignments added since it was deleted
+}
+
+function renderDeleted() {
+  const entries = deletedEntries();
+  const box = document.getElementById('deleted');
+  box.hidden = !entries.length;
+  if (!entries.length) return box.replaceChildren();
+  const open = box.querySelector('details')?.open;
+  box.replaceChildren(el('details', { open: !!open },
+    el('summary', { textContent: T.deletedCourses(entries.length) }),
+    el('ul', {}, ...entries.map(entry => el('li', {},
+      userText('span', { className: 'name', textContent: entry.name }),
+      el('span', { className: 'src', textContent: sourceOf(linksOf(entry)) }),
+      el('button', { type: 'button', className: 'restore', textContent: T.restore, title: T.restoreHint, onclick: () => restore(entry) }))))));
+}
 
 // ---- Sync status (extension only) ----
 let syncStatus = {}, syncing = false;
@@ -529,10 +589,12 @@ store && chrome.storage.onChanged.addListener((changes, area) => {
   if (area === 'local' && changes[STATUS_KEY]) { syncStatus = changes[STATUS_KEY].newValue || {}; renderSync(); }
   if (area === 'local' && changes[UPDATE_KEY]) { updateInfo = changes[UPDATE_KEY].newValue || null; renderUpdate(); }
   if (area === 'local' && changes[EMAIL_KEY]) emailInfo = changes[EMAIL_KEY].newValue || null;
+  if (area === 'local' && changes[HIDDEN_KEY]) { hidden = changes[HIDDEN_KEY].newValue || {}; renderDeleted(); }
+  if (area === 'local' && changes[DELETED_KEY]) { deleted = changes[DELETED_KEY].newValue || []; renderDeleted(); }
   if (area !== 'local' || !next || JSON.stringify(next) === JSON.stringify(courses)) return;
   courses = next;
   render();
 });
 
 render();
-load().then(c => { courses = c; render(); });
+Promise.all([load(), getValue(DELETED_KEY, []), getValue(HIDDEN_KEY, {})]).then(([c, d, h]) => { courses = c; deleted = d; hidden = h; render(); });

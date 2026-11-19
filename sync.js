@@ -2,6 +2,7 @@
 const KEY = 'doit-data';
 const DISMISSED_KEY = 'doit-dismissed'; // imported tasks the user deleted, so they aren't re-added
 const STATUS_KEY = 'doit-sync';
+const HIDDEN_KEY = 'doit-hidden-courses'; // { courseExt: name } of deleted courses the sites still list, so they can be restored
 const ICAL_KEY = 'doit-cw-ical'; // private calendar export link + course short names
 const CW = 'https://cw.sharif.ir';
 const QUERA = 'https://quera.org';
@@ -222,11 +223,12 @@ const linksOf = c => c.exts || (c.ext ? [c.ext] : []);
 
 // Adds new items to `courses` in place and updates changed dates. Only marks tasks done
 // (when the site says it was submitted), never un-done. Returns how many were added.
-function merge(courses, items, dismissed) {
+function merge(courses, items, dismissed, hidden = {}) {
   let added = 0;
   for (const item of items) {
     // Deleted tasks and every task of a deleted course stay deleted
-    if (dismissed.has(item.extId) || dismissed.has(item.legacyId) || dismissed.has(item.courseExt)) continue;
+    if (dismissed.has(item.courseExt)) { hidden[item.courseExt] = item.courseName; continue; }
+    if (dismissed.has(item.extId) || dismissed.has(item.legacyId)) continue;
     let task = courses.flatMap(c => c.tasks).find(t => t.extId === item.extId || (item.legacyId && t.extId === item.legacyId));
     if (task && item.partial) { Object.assign(task, { due: item.due, time: item.time }); continue; }
 
@@ -296,9 +298,12 @@ async function doSync() {
       const present = new Set(items.map(i => i.extId));
       // Page checks take a while, so they run before reading the list the user may be editing
       const pastDone = complete ? await submittedPast((await chrome.storage.local.get(KEY))[KEY] || [], complete, present, Date.now()) : new Set();
-      const data = await chrome.storage.local.get([KEY, DISMISSED_KEY]);
+      const data = await chrome.storage.local.get([KEY, DISMISSED_KEY, HIDDEN_KEY]);
       const courses = data[KEY] || [];
-      const added = merge(courses, items, new Set(data[DISMISSED_KEY] || []));
+      const dismissed = new Set(data[DISMISSED_KEY] || []);
+      const hidden = Object.fromEntries(Object.entries(data[HIDDEN_KEY] || {}).filter(([ext]) => dismissed.has(ext)));
+      const added = merge(courses, items, dismissed, hidden);
+      await chrome.storage.local.set({ [HIDDEN_KEY]: hidden });
       if (complete) markSubmitted(courses, complete, present, Date.now());
       for (const task of courses.flatMap(c => c.tasks)) if (pastDone.has(task.extId)) task.done = true;
       await chrome.storage.local.set({ [KEY]: courses });

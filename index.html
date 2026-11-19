@@ -184,6 +184,17 @@
   form.task .btn { background: var(--c); color: #fff; }
   [data-style=minimal] form.task .btn { color: var(--on-accent); }
 
+  /* Deleted courses, at the bottom of the list */
+  .deleted { margin-top: 24px; color: var(--muted); font-size: 14px; }
+  .deleted summary { cursor: pointer; width: fit-content; padding: 6px 12px; border-radius: 10px; font-weight: 600; }
+  .deleted summary:hover { background: var(--accent-soft); color: var(--text); }
+  .deleted ul { margin: 8px 0 0; background: var(--card); border: 1px solid var(--line); border-radius: 16px; padding: 6px 12px; }
+  .deleted li { display: flex; align-items: center; gap: 12px; padding: 8px 0; border-bottom: 1px dashed var(--line); }
+  .deleted li:last-child { border-bottom: 0; }
+  .deleted .name { flex: 1; color: var(--text); overflow-wrap: anywhere; }
+  .deleted .src { font-size: 12px; font-weight: 600; }
+  .deleted .restore { background: var(--accent-soft); color: var(--accent); font-size: 13px; font-weight: 600; padding: 4px 12px; border-radius: 99px; }
+  .deleted .restore:hover { background: var(--accent); color: var(--on-accent); }
   .empty { grid-column: 1 / -1; text-align: center; padding: 56px 16px; color: var(--muted); }
   .empty .big { font-size: 44px; }
   .muted { color: var(--muted); }
@@ -317,6 +328,7 @@
         <button class="btn" id="add-course-btn"></button>
       </form>
       <div id="courses"></div>
+      <div id="deleted" class="deleted" hidden></div>
     </section>
     <aside class="side">
       <div class="panel" id="calendar"></div>
